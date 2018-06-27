@@ -1,73 +1,28 @@
-import { loadJson } from "../utils/services";
+import {loadJson} from '../utils/services';
+import {createAction} from 'redux-actions';
 
-export const FETCH_REQUEST = 'FETCH_REQUEST';
-export const FETCH_SUCCESS = 'FETCH_SUCCESS';
-export const FETCH_ERROR = 'FETCH_ERROR';
-export const SET_FILTER = 'SET_FILTER';
+const FETCH_START = 'FETCH_START';
+const FETCH_SUCCESS = 'FETCH_SUCCESS';
+const FETCH_ERROR = 'FETCH_ERROR';
 
-function fetchLintersRequest(){
+export const fetchLintersStart = createAction(FETCH_START);
+export const fetchLintersSuccess = createAction(FETCH_SUCCESS);
+export const fetchLintersFailure = createAction(FETCH_ERROR);
 
-  return {
-    type: FETCH_REQUEST
-  }
-}
-
-function fetchLintersSuccess(payload) {
-
-  return {
-    type: FETCH_SUCCESS,
-    payload: payload
-  }
-}
-
-function fetchLintersError() {
-
-  return {
-    type: FETCH_ERROR
-  }
-}
-
-export function getLinters() {
-
-  return (dispatch) => {
-    dispatch(fetchLintersRequest());
-    const URL = "https://catalog.linterhub.com/bundle.json";
-    return loadJson(URL)
-      .then(([response, json]) => {
-        if (response.status === 200) {
-          let names = Object.keys(json).filter(k => k !== "$schema");
-          let linters = names.map(function (item) {
-            const linter = json[item];
-            return {
-              name: item,
-              description: linter.meta.description,
-              url: linter.meta.url,
-              license: linter.meta.license,
-              languages: linter.meta.languages
-            }
-          });
-          dispatch(fetchLintersSuccess(linters))
-        }
-        else {
-          dispatch(fetchLintersError())
-        }
-      })
-  }
-}
-
-
-export function addLinters(linters) {
-
-  return {
-    type: 'ADD_LINTERS',
-    payload: [...linters],
-  }
-}
-
-export function setFilter(search) {
-
-  return {
-    type: SET_FILTER,
-    payload: search
-  }
-}
+export const fetchLinters = () =>
+  // eslint-disable-next-line
+  async (dispatch) => {
+    dispatch(fetchLintersStart());
+    const URL = 'https://catalog.linterhub.com/bundle.json';
+    try {
+      const [, lintersList] = await loadJson(URL);
+      const lintersNames =
+        Object.keys(lintersList).filter(k => k !== '$schema');
+      const linters =
+        lintersNames.map((item) => lintersList[item].meta);
+      dispatch(fetchLintersSuccess(linters));
+    }
+    catch (error) {
+      dispatch(fetchLintersFailure(error));
+    }
+  };

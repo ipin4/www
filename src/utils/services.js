@@ -1,4 +1,4 @@
-export function loadJson(url) {
-  return fetch(url, { method: 'GET'})
+export const loadJson = (url) =>
+  fetch(url, {method: 'GET'})
+    // eslint-disable-next-line
     .then(response => Promise.all([response, response.json()]));
-}
